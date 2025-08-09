@@ -93,7 +93,18 @@ export default function TradingGuide() {
       if (!updatedImages[i].detectedTimeframe) {
         try {
           const timeframePrompt = `
-Analyze this trading chart image and identify the timeframe. Look for timeframe indicators in the chart interface.
+This is a TradingView chart screenshot. Identify the currently selected timeframe.
+
+In TradingView, the selected timeframe appears as a highlighted button in the top toolbar.
+It will be one of these options: 4h, 1h, 15m, or 5m (may appear as 5).
+
+The selected timeframe button typically:
+- Has a different background color than other timeframe buttons
+- May be darker or lighter than surrounding buttons
+- May have a border or glow effect
+- Is positioned in the timeframe selector area of the toolbar
+
+Pay special attention to the 5m timeframe, which may appear simply as '5' in the interface.
 
 Respond with ONLY one of these exact timeframes:
 - 4h (for 4 hour charts)
@@ -101,7 +112,7 @@ Respond with ONLY one of these exact timeframes:
 - 15m (for 15 minute charts)
 - 5m (for 5 minute charts)
 
-If you cannot clearly identify the timeframe, respond with "unknown".
+If you cannot clearly identify the selected timeframe, respond with "unknown".
 `;
 
           const response = await analyzeChartWithGemini({
