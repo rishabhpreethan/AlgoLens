@@ -155,56 +155,60 @@ If you cannot clearly identify the selected timeframe, respond with "unknown".
 
     const analysisPrompts = {
       chart4h: `
-You are an expert trading analyst. Analyze this 4-hour chart and provide detailed technical analysis.
+You are an expert trading analyst. Analyze this 4-hour chart and extract structured insights for multi-style trading.
 
 Focus on:
-1. **Trend Analysis**: Current trend direction and strength
-2. **Support/Resistance**: Key levels and price action around them
-3. **Technical Indicators**: RSI, moving averages, volume, any visible indicators
-4. **Chart Patterns**: Any recognizable patterns (triangles, flags, head & shoulders, etc.)
-5. **Market Structure**: Higher highs/lows, market phases
-6. **Risk Assessment**: Potential risks and invalidation levels
+1. Trend Analysis: Direction/strength, market structure (HH/HL or LH/LL)
+2. Support/Resistance: Key zones with exact price levels when visible
+3. AutoFib Retracement: Identify swing high/low and list 0.382, 0.5, 0.618, 0.786 levels with prices
+4. RSI: Current value, overbought/oversold status, divergences (bullish/bearish), trend of RSI
+5. Patterns: Triangles, flags, H&S, double tops/bottoms, breakouts/breakdowns
+6. Confluence: Where Fib, RSI, S/R, and patterns align
+7. Risk/Invalidation: Clear invalidation levels
 
-Provide your analysis in a structured format with clear sections. Be specific about price levels when visible.
+Output format (use concise bullet points, no long paragraphs):
+- Trend: ...
+- Key Levels: [level -> price]
+- Fib Levels: [0.382: x], [0.5: y], [0.618: z], [0.786: a]
+- RSI: value, state, divergences
+- Patterns: ...
+- Notes: ...
 `,
       chart1h: `
-You are an expert trading analyst. Analyze this 1-hour chart and provide detailed technical analysis.
+You are an expert trading analyst. Analyze this 1-hour chart with emphasis on actionable levels and confluence.
 
 Focus on:
-1. **Short-term Trend**: Current momentum and direction
-2. **Entry/Exit Zones**: Potential trade entry and exit points
-3. **Support/Resistance**: Immediate key levels
-4. **Technical Indicators**: RSI, moving averages, volume patterns
-5. **Price Action**: Recent candlestick patterns and market behavior
-6. **Confluence**: Areas where multiple factors align
+1. Short-term trend and momentum
+2. Entry/Exit zones with exact prices
+3. AutoFib: 0.382/0.5/0.618/0.786 from the most recent significant swing
+4. RSI: value, overbought/oversold, divergences, MA cross if visible
+5. Confluence and risk
 
-Provide actionable insights for short-term trading decisions. Be specific about timing and levels.
+Output (bullets only): Trend, Key Levels, Fib Levels, RSI, Patterns, Notes.
 `,
       chart15m: `
-You are an expert trading analyst. Analyze this 15-minute chart for precise entry timing.
+Analyze this 15-minute chart for intraday timing and precise levels.
 
 Focus on:
-1. **Micro Trends**: Very short-term price movements
-2. **Entry Timing**: Precise entry signals and confirmations
-3. **Scalping Opportunities**: Quick profit-taking levels
-4. **Volume Analysis**: Volume spikes and patterns
-5. **Price Action**: Recent candle formations and momentum
-6. **Risk Management**: Stop-loss placement for short-term trades
+1. Micro-trends and momentum shifts
+2. Pullback/Breakout entries relative to Fib levels
+3. RSI: value, thresholds, divergences for timing
+4. Immediate S/R levels and liquidity zones
+5. Execution and risk
 
-Provide specific timing guidance for intraday trading strategies.
+Output (bullets only): Trend, Key Levels, Fib Levels, RSI, Patterns, Notes.
 `,
       chart5m: `
-You are an expert trading analyst. Analyze this 5-minute chart for scalping and precise timing.
+Analyze this 5-minute chart for scalping and micro-structure.
 
 Focus on:
-1. **Immediate Price Action**: Current momentum and micro-movements
-2. **Scalping Setups**: Quick entry/exit opportunities
-3. **Volume Confirmation**: Volume supporting price moves
-4. **Support/Resistance**: Immediate levels for quick trades
-5. **Market Noise**: Filtering out false signals
-6. **Execution Timing**: Optimal entry and exit timing
+1. Immediate price action and momentum
+2. Quick setups: micro pullbacks to Fib/MA, range breaks, VWAP (if visible)
+3. RSI timing cues and divergences
+4. Very near S/R levels
+5. Execution timing
 
-Provide ultra-short-term trading insights with specific timing recommendations.
+Output (bullets only): Trend, Key Levels, Fib Levels, RSI, Patterns, Notes.
 `
     };
 
@@ -249,41 +253,37 @@ Provide ultra-short-term trading insights with specific timing recommendations.
         .join('\n\n');
 
       const finalPrompt = `
-You are an expert trading analyst. Based on the multi-timeframe analysis provided below, create a comprehensive trading recommendation.
+You are an expert trading analyst. Using the multi-timeframe analyses below, produce a structured plan that considers Swing, Day Trade, Intraday, and Scalping opportunities.
 
 ${availableAnalyses}
 
-## Instructions:
-Provide a structured final recommendation with these sections:
+## Output Requirements (concise bullets, no long paragraphs)
 
-### Trading Summary
-- **Overall Market Bias**: Bullish/Bearish/Neutral with confidence level
-- **Recommended Action**: BUY/SELL/WAIT with clear reasoning
-- **Trade Type**: Swing/Intraday/Scalp based on the setup quality
-- **Confidence Level**: High/Medium/Low
+### Trade Opportunities by Type
+For each type — Swing, Day Trade, Intraday, Scalping — do:
+- Setup Summary: Direction (BUY/SELL), rationale (confluence of Fib/RSI/SR/Patterns)
+- Entry: exact level(s) or zone
+- Stop: invalidation level
+- Take Profit: TP1/TP2/TP3 with prices and %
+- Confidence: 0–100 numeric score
+- Conditions: what must be true (e.g., RSI cross > 50, bullish divergence, break/retest of level)
 
-### Reasoning
-- **Multi-timeframe Confluence**: How different timeframes align
-- **Key Technical Factors**: Most important signals supporting the decision
-- **Risk Factors**: What could invalidate this analysis
-- **Market Context**: Current market conditions and their impact
+### If No Trade in a Type
+Provide a WAIT plan for that type:
+- Watch Levels: explicit prices (prefer Fib 0.382/0.5/0.618/0.786 and key SR)
+- Confirmations: RSI thresholds/divergence, candle patterns, break-and-retest
+- Invalidations: what cancels the idea
+- Reassess: when to check again (time or level)
 
-### Position Details
-- **Entry Zone**: Specific price levels for entry
-- **Stop Loss**: Exact stop-loss levels with reasoning
-- **Take Profit**: Multiple TP levels with percentages
-- **Position Size**: Recommended risk percentage
-- **Time Horizon**: Expected trade duration
-- **Alternative Scenarios**: What to do if price moves differently
+### Global Summary
+- Overall Bias: Bullish/Bearish/Neutral with 0–100 confidence
+- Best Opportunity: which type currently offers the best R:R and why
+- Risk Notes: key invalidations and news/volatility considerations
 
-### Waiting Points
-- If the recommendation is WAIT, specify:
-  - What levels to watch for entry
-  - What confirmations to wait for
-  - Alternative shorter-term opportunities
-  - When to reassess the situation
-
-Be specific with price levels, percentages, and actionable guidance. Focus on practical trading decisions.
+Rules:
+- Prefer AutoFib and RSI as primary signals; include pattern-based confluence when visible
+- List levels as bullets with prices; avoid long paragraphs
+- If any timeframe is missing, still produce plans using available data
 `;
 
       const finalAnalysis = await analyzeChartWithGemini({
